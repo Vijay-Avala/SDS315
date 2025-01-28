@@ -13,6 +13,8 @@ library(kableExtra)
 library(ggplot2)
 ```
 
+Link to github: <https://github.com/Vijay-Avala/SDS315>
+
 # Problem 1: Beauty, or Not, in the Classroom
 
 ### Information about the dataset
