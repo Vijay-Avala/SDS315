@@ -16,7 +16,7 @@ library(dplyr)
 options(tinytex.verbose = TRUE)
 ```
 
-Link to github: <https://github.com/Vijay-Avala/SDS315>
+Link to github: <https://github.com/Vijay-Avala/SDS315/blob/main/Vijay%20Avala%20SDS315%20HW%203.Rmd>
 
 # Problem 1: Gas Prices
 
