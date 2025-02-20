@@ -1,0 +1,423 @@
+---
+title: "Vijay Avala SDS215 HW 4"
+author: "Vijay Avala"
+date: "2025-02-19"
+output: pdf_document
+editor_options: 
+  markdown: 
+    wrap: 72
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+library(ggplot2)
+library(mosaic)
+library(dplyr)
+library(stringr)
+
+options(tinytex.verbose = TRUE)
+```
+
+Link to github:
+<https://github.com/Vijay-Avala/SDS315/blob/main/Vijay%20Avala%20SDS315%20HW%203.Rmd>
+
+# Problem 1: Iron Bank
+
+### Introduction of Problem
+
+The Securities and Exchange Commission (SEC) is investigating the Iron
+Bank, where a cluster of employees have recently been identified in
+various suspicious patterns of securities trading that violate federal
+“insider trading” laws. Here are few basic facts about the situation:
+
+-   Of the last 2021 trades by Iron Bank employees, 70 were flagged by
+    the SEC’s detection algorithm.
+
+-   But trades can be flagged every now and again even when no illegal
+    market activity has taken place. In fact, the SEC estimates that the
+    baseline probability that any legal trade will be flagged by their
+    algorithm is 2.4%.
+
+-   For that reason, the SEC often monitors individual and institutional
+    trading but does not investigate incidents that look plausibly
+    consistent with random variability in trading patterns. In other
+    words, they won’t investigate unless it seems clear that a cluster
+    of trades is being flagged at a rate significantly higher than the
+    baseline rate of 2.4%.
+
+Are the observed data (70 flagged trades out of 2021) consistent with
+the SEC’s null hypothesis that, over the long run, securities trades
+from the Iron Bank are flagged at the same 2.4% baseline rate as that of
+other traders?
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# 100,000 Monte Carlo Simulations of how many trades would get flagged out of 2021 trades
+sim_flagged_trades = do(100000)*nflip(n=2021, prob=.024)
+
+
+# Calculate confidence interval 
+conf_int <- confint(sim_flagged_trades, level=0.95)
+
+# Plot distribution with confidence interval overlaid and line showing 70 flagged trades
+ggplot(sim_flagged_trades, aes(x=nflip)) + 
+  annotate("rect",
+            xmin = round(conf_int$lower, 4), 
+            xmax = round(conf_int$upper, 4), 
+            ymin = 0, ymax = Inf,
+            alpha = 0.5,
+            fill = "plum")+
+  
+  geom_vline(xintercept = 70)+
+  geom_text(x=70, label="\n      70", y=7000, colour="maroon")+
+  
+  geom_histogram(fill = "maroon3", color = "white", bins=35)+
+  labs(
+    title = "Distribution of Simulated \nFlagged Trades for 2021 Trades (2.4% Baseline Rate)",
+    x = "Number of Flagged Trades out of 2021 Trades",
+    y = "Count",
+    caption = paste("95% Confidence Interval Lower bound:", round(conf_int$lower,4),"Upper Bound:", round(conf_int$upper,4))
+  )+
+  theme_minimal() +
+  theme(plot.caption = element_text(face = "italic", hjust = 1))
+```
+
+The null hypothesis that I am testing is that trades by Iron Bank
+employees are flagged at the same baseline probability (2.4%) as other
+traders. The p-value of **`r mean(sim_flagged_trades >= 70)`** suggests
+that, under the null hypothesis, there is only a
+**`r mean(sim_flagged_trades >= 70) * 100`%** chance of observing 70 or
+more flagged trades purely due to random variation. This probability is
+extremely low, providing strong evidence against the null hypothesis,
+thus I choose to reject the null hypothesis that Iron Bank's employees
+are being flagged at the average rate as normal legal trading. The SEC
+may have reason to investigate further, as the observed data suggest a
+significantly higher than expected rate of flagged trades.
+
+# Problem 2: Health Inspections
+
+### Introduction of Problem
+
+The local Health Department is investigating a popular local restaurant
+chain, Gourmet Bites, after receiving a higher-than-usual number of
+health code violation reports. Here are a few key points about the
+situation:
+
+-   Over the last year, 1500 health inspections were conducted across
+    various restaurants in the city, with\
+    various branches of Gourmet Bites inspected a total of 50 times.
+
+-   Of these 50 inspections, 8 resulted in health code violations being
+    reported.
+
+-   Typically, the Health Department’s data shows that, on average, 3%
+    of all restaurant inspections result\
+    in health code violations due to random issues that can occur even
+    in well-managed establishments.\
+
+The Health Department wants to ensure that any action taken is based on
+solid evidence that Gourmet Bites’ rate of health code violations is
+significantly higher than the citywide average of 3%.
+
+Question: Are the observed data for Gourmet Bites consistent with the
+Health Department’s null hypothesis that, on average, restaurants in the
+city are cited for health code violations at the same 3% baseline rate?
+
+\
+Use a Monte Carlo simulation (with at least 100,000 simulations) to
+calculate a p-value under this null\
+
+hypothesis. Follow the same answer format as in the prior problem
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+# 100,000 Monte Carlo Simulations of how many trades would get flagged out of 2021 trades
+sim_violations = do(100000)*nflip(n=50, prob=.03)
+
+# Calculate confidence interval 
+conf_int <- confint(sim_violations, level=0.95)
+
+# Plot distribution with confidence interval overlaid and line showing 70 flagged trades
+ggplot(sim_violations, aes(x=nflip)) + 
+  annotate("rect",
+            xmin = round(conf_int$lower, 4), 
+            xmax = round(conf_int$upper, 4), 
+            ymin = 0, ymax = Inf,
+            alpha = 0.5,
+            fill = "paleturquoise2")+
+  
+  geom_vline(xintercept = 8)+
+  geom_text(x=8, label="\n      8", y=20000, colour="turquoise4")+
+  
+  geom_histogram(fill = "turquoise3", color = "white", binwidth = 1)+
+  labs(
+    title = "Distribution of Simulated \nHealth Violations for 50 Inspections (3% Baseline Rate)",
+    x = "Number of Health Code Violations out of 50 Inspections",
+    y = "Count",
+    caption = paste("95% Confidence Interval Lower bound:", round(conf_int$lower,4),"Upper Bound:", round(conf_int$upper,4))
+  )+
+  theme_minimal() +
+  theme(plot.caption = element_text(face = "italic", hjust = 1))
+
+```
+
+The null hypothesis that I am testing is that health code violations at
+Gourmet Bites occur at the same baseline probability (3%) as other
+restaurants in the city. The p-value of
+**`r mean(sim_violations >= 8)`** suggests that, under the null
+hypothesis, there is only a **`r mean(sim_flagged_trades >= 8) * 100`%**
+chance of observing 8 or more health code violations purely due to
+random variation. This probability is extremely low, providing strong
+evidence against the null hypothesis, thus I choose to reject the null
+hypothesis that health code violations at Gourmet Bites occur at the
+same average rate as other restaurants in the city. The Health
+Department might want to look into Gourmet Bites as the observed data
+suggest a significantly higher than expected rate of health code
+violations.
+
+# Problem 3: Evaluating Jury Selection for Bias
+
+### **Introduction of Problem**
+
+Juries for state court cases are selected through a multi-step process
+designed to ensure that they represent a fair cross-section of the
+community. However, some residents and legal experts have raised
+concerns that juries empaneled by a particular judge do not reflect the
+county’s population. Your task is to investigate whether the selected
+juries show evidence of racial bias.
+
+How Jury Selection Works:
+
+The initial jury pool is drawn from voter registration lists, driver’s
+license databases, and tax records. Some people are automatically
+exempted from jury service (e.g., non-citizens, individuals with certain
+disabilities, or those with prior felony convictions in some states).
+Others may be excused for hardship (e.g., sole caregivers, financial
+hardship, or work-related exemptions). Once potential jurors arrive in
+court, attorneys from both the prosecution and defense, along with the
+judge, question them to determine if they can serve fairly. Some jurors
+are removed “for cause” if they express clear bias. Others are removed
+through peremptory challenges, where attorneys can dismiss jurors
+without providing a reason—though using peremptory challenges for racial
+discrimination is illegal. The judge oversees this process, but
+different judges may apply varying levels of scrutiny to ensure fair
+jury selection. Critics allege that juries selected by a particular
+judge have consistently lower representation from certain racial or
+ethnic groups compared to the county’s eligible jury population. To
+avoid preconceived biases in analysis, the county anonymized racial and
+ethnic categories into five groups: Group 1 through Group 5.
+
+The demographic breakdown of the county’s eligible jury pool is as
+follows:\
+Group Percentage\
+Group 1 30%\
+Group 2 25%\
+Group 3 20%\
+Group 4 15%\
+Group 5 10%
+
+\
+Now here are the corresponding group counts for the empaneled jurors in
+20 trials overseen by the judge in question (each jury has 12 members).\
+Group Count\
+Group 1 85\
+Group 2 56\
+Group 3 59\
+Group 4 27\
+Group 5 13
+
+Determine whether the distribution of jurors empaneled by this judge is
+significantly different from the county’s population proportions. (Make
+sure you are clear about each step of the test: H0, T , P (T \| H0), and
+so on.) If so, does this suggest systematic bias in jury selection? What
+other explanations might exist, and how could you investigate further?
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+expected_distribution = c(Group1 = 0.3, Group2 = 0.25, Group3 = 0.2, Group4 = 0.15, Group5 = 0.1)
+observed_counts =  c(Group1 = 85, Group2 = 56, Group3 = 59, Group4 = 27, Group5 = 13)
+
+
+# Define a function to calculate the chi-squared statistic
+chi_squared_statistic = function(observed, expected) {
+  sum((observed - expected)^2 / expected)
+}
+
+chi2_sim = do(100000)*{
+  simulated_counts = rmultinom(1, sum(observed_counts), expected_distribution)
+  this_chi2 = chi_squared_statistic(simulated_counts, sum(observed_counts) * expected_distribution)
+  c(chi2 = this_chi2) # return a vector with names and values
+}
+
+
+#Caluculate the observed chi^2 value
+observed_chi2 = chi_squared_statistic(observed_counts, sum(observed_counts) * expected_distribution)
+
+
+# Calculate p-value 
+chi2_p_value = mean(chi2_sim$chi2 >= observed_chi2)
+
+# Plot distribution with confidence interval overlaid and line showing 70 flagged trades
+ggplot(chi2_sim, aes(x=chi2)) + 
+  geom_vline(xintercept = observed_chi2) + 
+  geom_text(x=observed_chi2, label=paste("\n          ",round(observed_chi2, 2)), y=9000, colour="gold4")+
+  
+  geom_histogram(fill = "gold3", color = "white", binwidth = 1)+
+  labs(
+    title = "Distribution of Simulated \nChi-Squared Values for Jury Selection",
+    x = "Chi-Squared Statistic",
+    y = "Frequency",
+    caption = paste("Observed Chi-Squared: ", round(observed_chi2, 4), "\nP-value: ", round(chi2_p_value, 4), sep = "")
+  ) +
+  theme_minimal() +
+  theme(plot.caption = element_text(face = "italic", hjust = 1))
+
+```
+
+I used the Chi-Squared test statistic to measure the deviation between
+observed and expected jury compositions, and I used Monte Carlo
+simulation to create the historgram of simulated chi-squared values. I
+ran 100,000 simulations, and each simulation randomly assigned jurors to
+racial groups based on expected proportion and I computed the
+chi-squared statistic for each simulation to build the distribution of
+expected chi-squared values assuming the null hypothesis was true. I
+then found the chi-squared statistic of the values we observed
+(`r round(observed_chi2, 4)`) and calculated the p-value as the
+proportion of simulations where the simulated chi-squared value is
+greater than or equal to the observed chi-squared statistic. Since the
+p-value (`r round(chi2_p_value, 4)`) is less than 0.05, I reject the
+null hypothesis (H0), that the distribution of jurors empaneled by this
+judge matches the expected demographic proportions of the county’s
+eligible jury pool, at a 5% significance level. This means that I now
+adopt the alternate hypothesis that the distribution of jurors empaneled
+by this judge differs significantly from the expected demographic
+proportions, suggesting potential bias in jury selection. In conclusion,
+the observed jury selection patterns are unlikely to have occurred by
+random chance alone under the assumption that the judge is selecting
+fairly.
+
+# Problem 4: LLM watermarking
+
+### **Introduction of Problem**
+
+Watermarking output from a large language model (LLM) like ChatGPT
+involves embedding a unique, identifiable pattern or marker into the
+generated text. This marker is designed to be difficult to detect or
+remove without significantly altering the content or meaning of the
+text. The primary purpose of watermarking is to enable the tracing of
+the origin of the content, ensuring accountability and helping to
+prevent misuse of the technology. For example, watermarking can help
+identify when text has been generated by an AI model, distinguishing it
+from what tech bros obnoxiously refer to as “human-generated content”
+(i.e. what old people like me just called “written words” before, say,
+2022). The general principle of watermarking involves altering the
+output of the LLM in a subtle, consistent way that does not compromise
+the readability or coherence of the text. This alteration must be
+detectable through analysis, allowing the identification of the source
+of the content. The challenge lies in designing a watermark that is
+robust enough to withstand attempts at removal or obfuscation while
+remaining inconspicuous to casual observation. This is an active
+research area in statistics, machine learning, and AI. In this problem,
+we’ll consider a really simple example of watermarking, where we imagine
+than an LLM manipulates the frequency of certain letters in the
+generated sentences to deviate from their typical distributionin
+English. For instance, the model might be programmed to use the letter
+“z” more frequently than usual, or when given the choice of two equally
+good synonyms, to choose the one with rarer letters. This would create a
+distinctive pattern in the text that could be identified through
+statistical analysis, serving as a watermark. The key is to ensure that
+these alterations do not significantly impact the naturalness or
+readability of the text, allowing the watermark to remain hidden in
+plain sight.
+
+### Part A: the null or reference distribution
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+#Read in the sentences
+brown_sentences <- readLines("brown_sentences.txt")
+
+sentences <- data.frame(Sentence_ID = 1:length(brown_sentences), 
+                              Sentence_Text = brown_sentences, 
+                              stringsAsFactors = FALSE)
+
+
+#Read expected letter frequencies
+expected_frequencies <- read.csv("letter_frequencies.csv")
+
+#calculate chi-squared
+calculate_chi_squared = function(sentence, freq_table) {
+  
+  # Ensure letter frequencies are normalized and sum to 1
+  freq_table$Probability = freq_table$Probability / sum(freq_table$Probability)
+  
+  # Remove non-letters and convert to uppercase
+  clean_sentence = gsub("[^A-Za-z]", "", sentence)
+  clean_sentence = toupper(clean_sentence)
+
+  # Count the occurrences of each letter in the sentence
+  observed_counts = table(factor(strsplit(clean_sentence, "")[[1]], levels = freq_table$Letter))
+  
+  # Calculate expected counts
+  total_letters = sum(observed_counts)
+  expected_counts = total_letters * freq_table$Probability
+  
+  # Chi-squared statistic
+  chi_squared_stat = sum((observed_counts - expected_counts)^2 / expected_counts)
+  
+  return(chi_squared_stat)
+}
+
+
+for (i in 1:length(sentences$Sentence_Text)) {
+  sentences$chi_squared_stat[i] <- calculate_chi_squared(sentences$Sentence_Text[i], expected_frequencies)
+}
+
+
+# Plot the chi-square null distribution
+ggplot(sentences, aes(x = chi_squared_stat)) +
+  geom_histogram(fill = "black", color = "white") +
+  labs(title = "Chi-Squared Null Distribution of \nLetter Frequencies in English Sentences",
+       x = "Chi-Squared Statistic",
+       y = "Frequency") +
+  theme_minimal()
+
+```
+
+### Part B: Checking for a Watermark
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+sentence_texts <- c(
+  "She opened the book and started to read the first chapter, eagerly anticipating what might come next.",
+  "Despite the heavy rain, they decided to go for a long walk in the park, crossing the main avenue by the fountain in the center.",
+  "The museum’s new exhibit features ancient artifacts from various civilizations around the world.",
+  "He carefully examined the document, looking for any clues that might help solve the mystery.",
+  "The students gathered in the auditorium to listen to the guest speaker’s inspiring lecture.",
+  "Feeling vexed after an arduous and zany day at work, she hoped for a peaceful and quiet evening at home, cozying up after a quick dinner with some TV, or maybe a book on her upcoming visit to Auckland.",
+  "The chef demonstrated how to prepare a delicious meal using only locally sourced ingredients, focusing mainly on some excellent dinner recipes from Spain.",
+  "They watched the sunset from the hilltop, marveling at the beautiful array of colors in the sky.",
+  "The committee reviewed the proposal and provided many points of useful feedback to improve the project’s effectiveness.",
+  "Despite the challenges faced during the project, the team worked tirelessly to ensure its successful completion, resulting in a product that exceeded everyone’s expectations."
+)
+consider_sentences <- data.frame(Sentence_Text = sentence_texts)
+
+for (i in 1:length(consider_sentences$Sentence_Text)) {
+  consider_sentences$chi_squared_stat[i] <- calculate_chi_squared(consider_sentences$Sentence_Text[i], expected_frequencies)
+  consider_sentences$p_values[i] <- mean(sentences$chi_squared_stat >= consider_sentences$chi_squared_stat[i])
+}
+
+consider_sentences <- consider_sentences[order(consider_sentences$p_values), ]
+
+myTable <- kbl(head(consider_sentences, 10), 
+               col.names = c("Sentence Text", "Chi-Squared Value", "P-Value"),
+               caption = "P-value's under the null hypothesis that the sentence
+follows the “typical” English letter distribution", digits=4)
+
+
+kable_minimal(myTable, full_width = T, c("striped", "hover"))
+
+
+```
+
+We can see the sentence 6 has the lowest p-value at .008 which indicates
+that there is less than a 1% chance that this sentence follows the
+"typical" English letter distribution that we would expect. Thus, it is
+most likely that sentence 6 is the sentence that has the LLM watermark.
