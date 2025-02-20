@@ -406,15 +406,15 @@ for (i in 1:length(consider_sentences$Sentence_Text)) {
 
 consider_sentences <- consider_sentences[order(consider_sentences$p_values), ]
 
+
+consider_sentences$Sentence_Text <- strtrim(consider_sentences$Sentence_Text, 100)
 myTable <- kbl(head(consider_sentences, 10), 
-               col.names = c("Sentence Text", "Chi-Squared Value", "P-Value"),
+               col.names = c("Sentence Text (truncated to first 100 characters)", "Chi-Squared Value", "P-Value"),
                caption = "P-value's under the null hypothesis that the sentence
 follows the “typical” English letter distribution", digits=4)
 
 
 kable_minimal(myTable, full_width = T, c("striped", "hover"))
-
-
 ```
 
 We can see the sentence 6 has the lowest p-value at .008 which indicates
