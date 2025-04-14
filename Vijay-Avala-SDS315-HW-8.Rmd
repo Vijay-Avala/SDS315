@@ -1,0 +1,164 @@
+---
+title: "Vijay Avala Homework 8"
+author: "Vijay Avala"
+date: "2025-04-13"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+library(tidyverse)
+library(knitr)
+library(kableExtra)
+library(ggplot2)
+library(mosaic)
+library(dplyr)
+library(stringr)
+
+options(tinytex.verbose = TRUE)
+
+```
+
+Link to github: [[***click here***]{.underline}](https://github.com/Vijay-Avala/SDS315/blob/main/Vijay-Avala-SDS315-HW-7.Rmd)
+
+# Problem 1: Creatinine
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
+setwd('C:/Users/halos/Downloads/UT Austin/Spring 2025/SDS 315')
+creatinine <- read.csv("creatinine.csv")
+# ggplot(data = creatinine, aes(x = age, y = creatclear)) +
+#   geom_point()
+
+summary(lm(creatclear~age, data = creatinine))
+
+
+```
+
+### Findings:
+
+A)  What creatinine clearance rate should we expect for a 55-year-old? Explain briefly how you determined this.
+
+After fitting a linear regression model to the creatinine data, I got the equation ***creatinine clearance rate** = -.620\***age** + 147.8*. Using this equation, we find that we would expect a 55 year old to have a creatinine clearance rate of 113.7 ml.
+
+\
+B) How does creatinine clearance rate change with age? Explain briefly how you determined this.
+
+Creatinine clearance rate changes by *-.620 ml/year*. I determined this as it is the slope coefficient in the linear regression model equation for prediction of creatinine clearance rate given age. Since the interpretation of slope is that for each unit increase in x (so each year increase in age), y (creatinine clearance rate) increases by the amount of the slope, thus creatinine clearance rate goes down by .620ml for every year increase in age.
+
+\
+C) Whose creatinine clearance rate is healthier (higher) for their age: a 40-year-old with a rate of 135, or a\
+60-year-old with a rate of 112? Explain briefly (a few sentences + equations) how you determined this.
+
+To determine which person is healthier, we need to check the residuals (difference betewen the expected value from the model and the actual observed value) and see which one is greater to see who is further above the expected creeatinine clearance rate for their age. We do this by plugging in their age into our linear regression equation from part a, ***creatinine clearance rate** = -.620\***age** + 147.8*, to find that the expected creatinine clearance rates for the 40 and 60 year old are 123 ml (*-.62\*40 + 147.8*) and 110.6 ml (*-.62\*60 + 147.8*) respectively. We can then find the residual for each person by doing *residual = observed - expected* to see that the 40 year old has a creatinine clearance rate that is 12 ml (*135-123*) above their expected rate and the 60 year old has a creatinine clearance rate that is 1.4 ml (*112-110.6*) above their expected rate. Thus, the 40 year old with a rate of 135 ml is healthier for their age.
+
+# Problem 2: Modeling disease growth
+
+### Introduction to Data
+
+The file covid.csv contains data on daily reported COVID-19 deaths for Italy and Spain—two of the hardest-hit European countries—during the first pandemic wave in February and March of 2020. The columns in this data frame are:
+
+-   date: the calendar date
+
+-   country: Italy or Spain
+
+-   deaths: the number of reported COVID-19 deaths in that country on that day
+
+-   days_since_first_death: the number of days elapsed since the first death in that country
+
+Your task is to fit two exponential growth models, one for Italy and one for Spain, using days_since_first_death as the time variable. Use the results of your model to characterize the growth rate and doubling time of the daily death total in each country.\
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
+covid <- read.csv("covid.csv")
+
+italy_covid <- covid[covid$country == "Italy", ]
+spain_covid <- covid[covid$country == "Spain", ]
+
+
+summary(lm(log(deaths) ~ days_since_first_death, data=italy_covid))
+summary(lm(log(deaths) ~ days_since_first_death, data=spain_covid))
+
+
+
+italy_exp_model = do(10000)*lm(log(deaths) ~ days_since_first_death, data=resample(italy_covid))
+
+italy_conf_int <- confint(exp(italy_exp_model$days_since_first_death), level=0.95)
+summary(italy_conf_int)
+
+italy_double_conf_int <- confint(70/exp(italy_exp_model$days_since_first_death), level=0.95)
+summary(italy_double_conf_int)
+
+spain_exp_model = do(10000)*lm(log(deaths) ~ days_since_first_death, data=resample(spain_covid))
+
+# Calculate confidence interval 
+spain_conf_int <- confint(exp(spain_exp_model$days_since_first_death), level=0.95)
+summary(spain_conf_int)
+
+spain_double_conf_int <- confint(70/exp(spain_exp_model$days_since_first_death), level=0.95)
+summary(spain_double_conf_int)
+```
+
+1\. An estimated growth rate and doubling time for Italy, with 95% bootstrapped confidence intervals for each.
+
+*The estimated growth rate for Italy is 1.201 (95% confidence interval: 1.172 to 1.231) and the estimated doubling time is 58.3 days (95% confidence interval: 56.9 to 59.7).*
+
+\
+2. An estimated growth rate and doubling time for Spain, with 95% bootstrapped confidence intervals for each.
+
+*The estimated growth rate for Spain is 1.318 (95% confidence interval: 1.264 to 1.373) and the estimated doubling time is 53.1 days (95% confidence interval: 51 to 55.4).*
+
+\
+3. A line graph showing reported daily deaths over time (using days_since_first_death, rather than\
+calendar date, as the relevant time variable) in each country.
+
+```{r echo=FALSE, warning=FALSE, message=FALSE}
+
+italy_covid$fit <- exp(fitted(lm(log(deaths) ~ days_since_first_death, data = italy_covid)))
+spain_covid$fit <- exp(fitted(lm(log(deaths) ~ days_since_first_death, data = spain_covid)))
+
+fitted_data <- rbind(
+  data.frame(country = "Italy", italy_covid[, c("days_since_first_death", "fit")]),
+  data.frame(country = "Spain", spain_covid[, c("days_since_first_death", "fit")])
+)
+
+
+ggplot(data = covid, aes(x = days_since_first_death, y = deaths, color = country))+
+  geom_point()+
+  labs(title = "COVID Deaths over Time in Italy and Spain",
+       x = "Days Since First Death",
+       y = "Deaths",
+       fill = "Country", 
+       ) +
+    geom_line(data = fitted_data, aes(x = days_since_first_death, y = fit, color = country)) +
+  theme_minimal() +
+  scale_fill_manual("legend", values = c("Italy" = "maroon3", "Spain" = "turquoise3"))
+# 
+#   lines(italy_covid$days_since_first_death, exp(fitted(lm(log(deaths) ~ days_since_first_death, data=italy_covid))), col = "maroon3")
+#                                                   
+#   lines(spain_covid$days_since_first_death, exp(fitted(lm(log(deaths) ~ days_since_first_death, data=spain_covid))), col = "turquoise3")
+
+```
+
+# Problem 3: Price Elasticity of Demand
+
+### Introduction of Problem
+
+The data in milk.csv comes from something called a “stated preference” study, which is intended to measure people’s sensitivity to the price of a good or service. The basic framework is that participants are given a fixed budget and presented with a menu of goods, including milk, at varying prices. The key here is that the prices of milk (and other goods) are varied across different participants. Each participant has to decide how much milk to buy, along with other goods, within their given budget constraint. By observing how the quantity of milk purchased varies with its price across different groups, the economist can determine how sensitive consumers are to changes in the price of milk. If participants with the higher milk price buy significantly less milk than those with the lower price, this indicates a higher elasticity, showing that demand for milk decreases as the price increases. On the other hand, if the quantity of milk purchased does not vary much between the different price levels, it suggests that the demand for milk is relatively inelastic with respect to its price. This approach, by incorporating a fixed budget and a broad choice set, attempts to mimic real-world purchasing decisions more closely and can provide a relatively (though not perfectly) realistic estimation of how consumers would react to price changes in an actual market scenario. It acknowledges that consumers’ choices are influenced by their overall budget and the relative prices of all goods they consume, not just the price of a single item. In milk.csv, there are two columns of data arising from this experiment:
+
+-   price, representing the price of milk on the menu
+
+-   sales, representing the number of participants willing to purchase milk at that price.
+
+The economists’ power-law model is $$Q = KP^\beta$$, where P is price, Q is quantity demanded by consumers at that price, and $$\beta$$ is the price elasticity of demand. In light of the data, what is the estimated price elasticity of demand for milk? Give a 95% bootstrapped confidence interval for this quantity.
+
+```{r echo=FALSE, warning=FALSE, message=FALSE, results='hide'}
+milk <- read.csv("milk.csv")
+
+summary(lm(log(sales) ~ log(price), data=milk))
+
+milk_exp_model = do(10000)*lm(log(sales) ~ log(price), data=resample(milk))
+
+milk_conf_int <- confint(milk_exp_model$log.price, level=0.95)
+summary(milk_conf_int)
+
+```
+
+After fitting the power law model, we get the equation $$Q = 112.236P^{-1.619}$$ and we can see that our estimated price elasticity for milk is ***-1.619*** (95% confidence interval: -1.773 to -1.454). Since the price elasticity formula is a power law formula, I log-transformed the x and y data, sales and price respectively. After that, I could perform linear regression on the log-transformed x and y in order to get regression coefficients. I also bootstrapped the same linear regression on log transformed x and y 10,000 times and created a 95% confidence interval on the resulting 10,000 coefficients for the exponent of price.
