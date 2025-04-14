@@ -18,7 +18,7 @@ options(tinytex.verbose = TRUE)
 
 ```
 
-Link to github: [[***click here***]{.underline}](https://github.com/Vijay-Avala/SDS315/blob/main/Vijay-Avala-SDS315-HW-7.Rmd)
+Link to github: [[***click here***]{.underline}](https://github.com/Vijay-Avala/SDS315/blob/main/Vijay-Avala-SDS315-HW-8.Rmd)
 
 # Problem 1: Creatinine
 
